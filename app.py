@@ -45,15 +45,16 @@ def handle_message(event):
     # message = TextSendMessage(text=event.message.text)
 
     purpose = event.message.text                        ########
-    if not bus.testTokenAvailable(token):
-        token = bus.get_token()
-    message = bus.call_tdx_service(purpose, token)
+    if not bus.testTokenAvailable(tdx_token):
+        tdx_token = bus.get_token()
+    if tdx_token == None:
+        line_bot_api.reply_message(event.reply_token,"取得tdx token 失敗")
 
-
+    message = bus.call_tdx_service(purpose, tdx_token)
     line_bot_api.reply_message(event.reply_token,message)
 
 import os
 if __name__ == "__main__":
-    token = bus.get_token()
+    tdx_token = bus.get_token()
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)

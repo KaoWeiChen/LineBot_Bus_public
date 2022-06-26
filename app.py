@@ -44,9 +44,11 @@ def callback():
 def handle_message(event):
     # message = TextSendMessage(text=event.message.text)
 
-    purpose = event.message.text                        ########
+    purpose = event.message.text                        #####################################
+    # 若tdx_token失效，重新取得token
     if not bus.testTokenAvailable(tdx_token):
         tdx_token = bus.get_token()
+    # 取得tdx_token失敗
     if tdx_token == None:
         line_bot_api.reply_message(event.reply_token,"取得tdx token 失敗")
 

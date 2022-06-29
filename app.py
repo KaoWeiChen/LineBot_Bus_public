@@ -52,7 +52,7 @@ def handle_message(event):
         line_bot_api.reply_message(event.reply_token,"取得tdx token 失敗")
     text = event.message.text
     start_stop = text.split("到")[0]
-    end_stop = text.split("到")[0]
+    end_stop = text.split("到")[1]
     message = TextSendMessage(bus.find_bus(start_stop, end_stop, tdx_token))
     line_bot_api.reply_message(event.reply_token,message)
 

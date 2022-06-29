@@ -11,6 +11,7 @@ from linebot.models import *
 
 import requests
 import bus
+import command
 
 app = Flask(__name__)
 
@@ -18,7 +19,7 @@ line_bot_api = LineBotApi('bVsN9aiFABaRpxQDFS0d/MNE5dwAeh2PaQPXFImWRSHv+g2b36lJM
 
 handler = WebhookHandler('c578b2dc2387d24d5e9b971f7829d702')
 
-line_bot_api.push_message('U30838abc49d28474a3acf875481f7f6b', TextSendMessage(text='你可以開始了'))
+line_bot_api.push_message('U30838abc49d28474a3acf875481f7f6b', TextSendMessage(text='使用方式:\n請輸入 XXX到XXX (XXX分別為公車站名)\n可利用!command查找可用指令'))
 
 
 @app.route("/callback", methods=['POST'])
@@ -43,17 +44,12 @@ def callback():
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     ### message = TextSendMessage(text=event.message.text)
-    if event.message.text == "help":
-        message = "請輸入 XXX到XXX (XXX分別為公車站名)"
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(message))
-    
+
     # 取得tdx_token失敗
     if tdx_token == None:
         line_bot_api.reply_message(event.reply_token,"取得tdx token 失敗")
     text = event.message.text
-    start_stop = text.split("到")[0]
-    end_stop = text.split("到")[1]
-    message = TextSendMessage(bus.find_bus(start_stop, end_stop, tdx_token))
+    message = TextSendMessage(command.cmd(event.message.text))
     line_bot_api.reply_message(event.reply_token,message)
 
 import os

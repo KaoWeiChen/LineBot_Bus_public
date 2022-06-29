@@ -10,7 +10,7 @@ from linebot.exceptions import (
 from linebot.models import *
 
 import requests
-import bus
+from bus import get_token
 import command
 
 app = Flask(__name__)
@@ -49,11 +49,11 @@ def handle_message(event):
     if tdx_token == None:
         line_bot_api.reply_message(event.reply_token,"取得tdx token 失敗")
     text = event.message.text
-    message = TextSendMessage(command.cmd(event.message.text))
+    message = TextSendMessage(command.cmd(text))
     line_bot_api.reply_message(event.reply_token,message)
 
 import os
 if __name__ == "__main__":
-    tdx_token = bus.get_token()
+    tdx_token = get_token()
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)

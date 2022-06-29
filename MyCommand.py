@@ -8,7 +8,7 @@ def cmd(cmd , tdx_token):
         start_stop = text.split("到")[0]
         end_stop = text.split("到")[1]
         return bus.find_bus(start_stop, end_stop, tdx_token)
-    return "指令輸入錯誤，請重新輸入指令。如果要查詢指令使用方式，請輸入!command"
+    return "指令輸入錯誤，請重新輸入指令。\n如果要查詢指令使用方式，請輸入!command"
 
 if __name__ == "__main__":
     tdx_token = bus.get_token()

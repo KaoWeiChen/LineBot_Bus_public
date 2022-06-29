@@ -42,19 +42,18 @@ def callback():
  
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
-    # message = TextSendMessage(text=event.message.text)
+    ### message = TextSendMessage(text=event.message.text)
     if event.message.text == "help":
-        message = "XXX 還要多久會到"
+        message = "請輸入 XXX到XXX (XXX分別為公車站名)"
         line_bot_api.reply_message(event.reply_token, TextSendMessage(message))
-    purpose = event.message.text                        #####################################
-    # 若tdx_token失效，重新取得token
-    if not bus.testTokenAvailable(tdx_token):
-        tdx_token = bus.get_token()
+    
     # 取得tdx_token失敗
     if tdx_token == None:
         line_bot_api.reply_message(event.reply_token,"取得tdx token 失敗")
-
-    message = TextSendMessage(bus.call_tdx_service(purpose, tdx_token))
+    text = event.message.text
+    start_stop = text.split("到")[0]
+    end_stop = text.split("到")[0]
+    message = TextSendMessage(bus.find_bus(start_stop, end_stop, tdx_token))
     line_bot_api.reply_message(event.reply_token,message)
 
 import os

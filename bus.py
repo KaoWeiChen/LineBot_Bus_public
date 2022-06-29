@@ -100,6 +100,9 @@ def reach_StartStop_time(routes, StartID, token):
                 else:
                     if bus.get("EstimateTime") < comming.get(route[0]):
                         comming[route[0]] = bus.get("EstimatieTime")
+
+    if len(comming) > 0:
+        comming = { stop : arrivetime for stop, arrivetime in sorted(comming.items(), key=lambda item: item[1])}
     return comming
 
 

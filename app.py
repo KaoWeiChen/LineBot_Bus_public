@@ -11,7 +11,7 @@ from linebot.models import *
 
 import requests
 from bus import get_token
-import command
+import MyCommand
 
 app = Flask(__name__)
 
@@ -49,7 +49,7 @@ def handle_message(event):
     if tdx_token == None:
         line_bot_api.reply_message(event.reply_token,"取得tdx token 失敗")
     text = event.message.text
-    message = TextSendMessage(command.cmd(text))
+    message = TextSendMessage(MyCommand.cmd(text, tdx_token))
     line_bot_api.reply_message(event.reply_token,message)
 
 import os

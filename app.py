@@ -46,7 +46,7 @@ def callback():
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     # message = TextSendMessage(text=event.message.text)
-    client_id = json.loads(json.loads(str(event))).get("source").get("userId")
+    client_id = json.loads((str(event))).get("source").get("userId")
 
     # 取得tdx_token失敗
     if tdx_token == None:

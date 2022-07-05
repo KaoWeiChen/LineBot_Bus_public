@@ -109,7 +109,7 @@ def find_bus_position(start: str, end: str, token :str, client_id):
             comming = reach_StartStop_time(reachable, start_station.get("StationID"), token)
             if len(comming) < 1:
                 continue
-            message = "請到{}站搭乘公車到{}站\n".format(start_station.get("StationName"), end_station.get("StationName"))
+            message = "請到 {}站 搭乘公車到 {}站\n".format(start_station.get("StationName"), end_station.get("StationName"))
             for route in comming:
                 message+= "{} 將在 {}後抵達 \n".format(route, transSec(comming.get(route)))
             ##  清除本次存取的資料    

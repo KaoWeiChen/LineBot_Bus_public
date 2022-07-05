@@ -46,14 +46,16 @@ def callback():
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     # message = TextSendMessage(text=event.message.text)
-    client_id = json.loads(str(event.message.text)).get("source").get("userId")
+    # client_id = json.loads(str(event.message.text)).get("source").get("userId")
 
-    # 取得tdx_token失敗
-    if tdx_token == None:
-        line_bot_api.reply_message(event.reply_token,"取得tdx token 失敗")
-    text = event.message.text
-    message = TextSendMessage(MyCommand.cmd(text, tdx_token, client_id))
+    # # 取得tdx_token失敗
+    # if tdx_token == None:
+    #     line_bot_api.reply_message(event.reply_token,"取得tdx token 失敗")
+    # text = event.message.text
+    # message = TextSendMessage(MyCommand.cmd(text, tdx_token, client_id))
 
+
+    message = TextSendMessage(event)
     line_bot_api.reply_message(event.reply_token,message)
 
 import os

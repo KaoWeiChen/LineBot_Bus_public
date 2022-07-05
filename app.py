@@ -55,7 +55,7 @@ def handle_message(event):
     # message = TextSendMessage(MyCommand.cmd(text, tdx_token, client_id))
 
 
-    message = TextSendMessage(event)
+    message = TextSendMessage(event.message)
     line_bot_api.reply_message(event.reply_token,message)
 
 import os

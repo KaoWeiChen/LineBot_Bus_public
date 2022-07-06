@@ -4,7 +4,7 @@ from find_place import find_place
 
 def cmd(cmd , tdx_token, client_id):
     if cmd == "command":
-        return "1. 公車站 [起始公車站名]到[終點公車站名]\n2. 地名 [起始地點]到[終點]"
+        return "1. 公車站 [出發公車站名]到[到達公車站名]\n2. 地點 [出發地點]到[到達地點]"
     if cmd[:3] == "公車站":
         if " " in cmd:
             startToend = cmd.split(" ")[1]
@@ -14,7 +14,7 @@ def cmd(cmd , tdx_token, client_id):
                 return bus.find_bus(start_stop, end_stop, tdx_token)
             else:
                 return "指令輸入錯誤，請重新輸入指令。\n如果要查詢指令使用方式，請輸入command"
-    if cmd[:2] == "地名":
+    if cmd[:2] == "地點":
         if " " in cmd:
             startToend = cmd.split(" ")[1]
             if "到" in startToend:

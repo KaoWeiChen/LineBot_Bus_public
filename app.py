@@ -20,7 +20,7 @@ line_bot_api = LineBotApi('bVsN9aiFABaRpxQDFS0d/MNE5dwAeh2PaQPXFImWRSHv+g2b36lJM
 
 handler = WebhookHandler('c578b2dc2387d24d5e9b971f7829d702')
 
-line_bot_api.push_message('U30838abc49d28474a3acf875481f7f6b', TextSendMessage(text='使用方式:\n1. 公車站 [起始公車站名]到[終點公車站名]\n2. 地名 [起始地點]到[終點]\n\n可利用command查找可用指令'))
+line_bot_api.push_message('U30838abc49d28474a3acf875481f7f6b', TextSendMessage(text='使用方式:\n1. 公車站 [出發公車站名]到[到達公車站名]\n2. 地點 [出發地點]到[到達地點]\n\n可利用command查找可用指令'))
 
 
 

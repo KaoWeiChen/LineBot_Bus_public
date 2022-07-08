@@ -1,12 +1,20 @@
 import requests
-
+import json
+import logging, os
 ## 利用GoogleMap Place API搜尋地點
 ## input 搜尋地點: str
-## ouput { "PlaceName", "lat", "lon"}
+## ouput { "PlaceName", "lat", "lon" }
 
-API_KEY = "AIzaSyCcErOJ-RtjuHFNDoN2KiyyL08AE-z72gM"
+
+
 
 def find_place(search_name):
+    try:
+        with open("Tokens.json", "r") as file:
+            API_KEY = json.load(file).get("GoogleMap_API_Key")
+    except FileNotFoundError:
+        logging.warning("請先執行[第一次使用.exe]並輸入GoogleMap API KEY")
+        os._exit(0)
     URL = "https://maps.googleapis.com/maps/api/place/findplacefromtext/json?language=zh-tw&input=" + search_name + "&inputtype=textquery&fields=name,geometry&key=" + API_KEY
     hearders = {}
     payload = {}
@@ -26,4 +34,4 @@ def position(place):
             "lon" : place.get("candidates")[0].get("geometry").get("location").get("lng")}
 
 if __name__ == "__main__":
-    print(find_place("台大"))
+    print(find_place("大安森林公園"))

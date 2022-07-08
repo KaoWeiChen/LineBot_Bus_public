@@ -1,20 +1,29 @@
-from email.encoders import encode_noop
 import requests
 import time
 import json
 import math
 import ijson
 from find_place import (find_place, position)
+import logging
+import os
+
+
 
 TDX_URL = 'https://tdx.transportdata.tw/auth/realms/TDXConnect/protocol/openid-connect/token'
-client_id = "40540129s-6b8a80eb-2f93-4627"
-client_secret = "ca99f668-7063-4ddb-83a4-dc51c95ee715"
 
 
 def get_token():
+    try:
+        with open("Tokens.json", "r") as file:
+            data = json.load(file)
+            tdx_client_id = data.get("TDX_Client_ID", None)
+            tdx_client_secret = data.get("TDX_Client_Secret", None)        
+    except FileNotFoundError:
+        logging.warning("請先執行[第一次使用.exe]並輸入TDX資料")
+        os._exit(0)
     times = 0
     header = {'content-type' : "application/x-www-form-urlencoded"}
-    data = {"grant_type" : "client_credentials", "client_id" : client_id, "client_secret" : client_secret}
+    data = {"grant_type" : "client_credentials", "client_id" : tdx_client_id, "client_secret" : tdx_client_secret}
     response = requests.post(TDX_URL, headers = header, data = data)
     while response.status_code != 200 and times < 5:
         time.sleep(0.1)
@@ -68,14 +77,16 @@ def find_bus(start_stop: str, end_stop: str, token: str):
     return message
 
         
-def find_bus_position(start: str, end: str, token :str, client_id):
+def find_bus_position(start: str, end: str, token :str, client_id = None):
+    if not client_id:
+        import random
+        client_id = random.getrandbits(128)
     start_place = find_place(start)
     end_place = find_place(end)
     if not start_place:
         return "起始位置輸入錯誤"
     elif not end_place:
         return "終點位置輸入錯誤"
-    busFound = False
 
     start_station = position_get_station(start_place, token, "start", client_id)
     end_station = position_get_station(end_place, token, "end", client_id)
@@ -112,11 +123,14 @@ def find_bus_position(start: str, end: str, token :str, client_id):
             message = "請到 {}站 搭乘公車到 {}站\n".format(start_station.get("StationName"), end_station.get("StationName"))
             for route in comming:
                 message+= "{} 將在 {}後抵達 \n".format(route, transSec(comming.get(route)))
-            ##  清除本次存取的資料    
+            ##  清除本次存取temp_station資料    
             open("./Temp_Stations/start_{}.json".format(client_id), "w").close()
             open("./Temp_Stations/end_{}.json".format(client_id), "w").close()
             return message
-    return "找不到 {}到{} 的公車".format(start, end)
+    ## 清除本次存取temp_station資料
+    open("./Temp_Stations/start_{}.json".format(client_id), "w").close()
+    open("./Temp_Stations/end_{}.json".format(client_id), "w").close()
+    return "找不到 {} 到 {} 的公車".format(start, end)
 
     
 
@@ -217,9 +231,14 @@ def transSec(sec):
 
 def main():
     tdx_token = get_token()
-    start_time = time.time()
-    print(find_bus_position("大安森林公園", "國家音樂廳", tdx_token, "123"))
-    end_time = time.time()
-    print("執行時間 = {}".format(str(transSec(end_time-start_time))))
+    if not tdx_token:
+        print("取得token失敗，請檢查TDX Client ID與TDX Client Secret是否正確")
+        return
+    ## find_bus( "出發公車站", "到達公車站", TDX_Token )
+    print(find_bus("師大", "師大分部", tdx_token))
+
+    ## find_bus_position( "出發地點", "到達地點", TDX_Token, "line client id": 使用line_bot時會自動傳入)
+    print(find_bus_position("大安森林公園", "國家音樂廳", tdx_token, client_id="123"))
+
 if __name__ == "__main__":
     main()

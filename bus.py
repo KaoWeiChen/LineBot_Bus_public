@@ -10,7 +10,7 @@ import os
 ## find_bus: 輸入起、終點公車站名來找到可以搭乘的路線，並取得該路線到達起點公車站剩餘時間
 ## find_bus_positino: 輸入起、終點來搜尋兩點附近的公車站，並取得可以搭乘的路線與到達起點公車站剩餘時間
 
-TDX_URL = 'https://tdx.transportdata.tw/auth/realms/TDXConnect/protocol/openid-connect/token'
+TDX_Token_URL = 'https://tdx.transportdata.tw/auth/realms/TDXConnect/protocol/openid-connect/token'
 
 def get_token():
     try:
@@ -24,19 +24,21 @@ def get_token():
     times = 0
     header = {'content-type' : "application/x-www-form-urlencoded"}
     data = {"grant_type" : "client_credentials", "client_id" : tdx_client_id, "client_secret" : tdx_client_secret}
-    response = requests.post(TDX_URL, headers = header, data = data)
+    response = requests.post(TDX_Token_URL, headers = header, data = data)
     while response.status_code != 200 and times < 5:
         time.sleep(0.1)
-        response = requests.post(TDX_URL, headers = header, data = data)
+        response = requests.post(TDX_Token_URL, headers = header, data = data)
         times+=1
-    if response.status_code == 200:
-        return response.json().get("access_token")
+    tdx_token = response.json().get("access_token", None)
+    if tdx_token:
+        return tdx_token
     else:
-        return None
+        logging.warning("取得TDX Token失敗，請檢查TDX Client ID與TDX Client Secret是否正確")
+        os._exit(0)
     
 
 ###1.  傳入[start_stop : str]、[end_stop : str]
-def find_bus(start_stop: str, end_stop: str, token: str):   
+def find_bus(start_stop: str, end_stop: str, tdx_token: str):   
 
 ### 2.  從station_info找到[start_stop]中[All_RouteID]          
     with open("Station_info.json", "rb") as file:
@@ -61,14 +63,14 @@ def find_bus(start_stop: str, end_stop: str, token: str):
             request_times = 0
             time.sleep(1)
         request_times+=1
-        direction = isReachable(route, start_stop, end_stop, token)
+        direction = isReachable(route, start_stop, end_stop, tdx_token)
         if direction >= 0:
             reachable.append([route, direction])
     if len(reachable) < 1:
         return "找不到從 {} 到 {} 的公車".format(start_stop, end_stop)
 
 ### 4.用[StartStopID]找到所有將要到達的公車，並取出[reachable]的到達時間
-    comming = reach_StartStop_time(reachable, StartID, token)
+    comming = reach_StartStop_time(reachable, StartID, tdx_token)
     if len(comming) < 1:
         return "目前沒有 從 {} 到 {} 的班車".format(start_stop, end_stop)
     message = ""
@@ -232,8 +234,6 @@ def transSec(sec):
     sec = sec%60
     return "{} 分 {}秒".format(minute, sec)
 
-def testTokenAvailable(token):
-    pass
 
 def main():
     tdx_token = get_token()
@@ -241,7 +241,7 @@ def main():
         print("取得token失敗，請檢查TDX Client ID與TDX Client Secret是否正確")
         return
     ## find_bus( "出發公車站", "到達公車站", TDX_Token )
-    print(find_bus("師大", "師大分部", tdx_token))
+    print(find_bus("", "師大分部", tdx_token))
 
     ## find_bus_position( "出發地點", "到達地點", TDX_Token, "line client id": 使用line_bot時會自動傳入)
     print(find_bus_position("大安森林公園", "國家音樂廳", tdx_token, client_id="123"))

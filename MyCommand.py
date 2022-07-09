@@ -1,8 +1,13 @@
 import bus
 from find_place import find_place
+'''
+可用指令:
+    1. 公車站 [出發公車站名]到[到達公車站名]
+    2. 地點 [出發地點]到[到達地點]
+    3. command
+'''
 
-
-def cmd(cmd , tdx_token, client_id):
+def cmd(cmd , tdx_token, line_client_id=None):
     if cmd == "command":
         return "1. 公車站 [出發公車站名]到[到達公車站名]\n2. 地點 [出發地點]到[到達地點]"
     if cmd[:3] == "公車站":
@@ -20,17 +25,17 @@ def cmd(cmd , tdx_token, client_id):
             if "到" in startToend:
                 start_place = startToend.split("到")[0]
                 end_place = startToend.split("到")[1]
-                return bus.find_bus_position(start_place, end_place, tdx_token, client_id)
+                return bus.find_bus_position(start_place, end_place, tdx_token, line_client_id)
             else:
                 return "指令輸入錯誤，請重新輸入指令。\n如果要查詢指令使用方式，請輸入command"
     return "指令輸入錯誤，請重新輸入指令。\n如果要查詢指令使用方式，請輸入command"
     
 
+def main():
+    tdx_token = bus.get_token()
+    command = input("指令格式:\n1. 公車站 [出發公車站名]到[到達公車站名]\n2. 地點 [出發地點]到[到達地點]\n請輸入指令: ")
+    print(cmd(command, tdx_token))
 
 
 if __name__ == "__main__":
-    tdx_token = bus.get_token()
-    print(cmd("command", tdx_token, "123"))
-    print(cmd("公車站 師大分部到臺大", tdx_token, "123"))
-    print(cmd("地名 新光三越到統一阪急", tdx_token, "123"))
-    print(cmd(str(11223), tdx_token, "123"))
+    main()

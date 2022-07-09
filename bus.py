@@ -7,10 +7,10 @@ from find_place import (find_place, position)
 import logging
 import os
 
-
+## find_bus: 輸入起、終點公車站名來找到可以搭乘的路線，並取得該路線到達起點公車站剩餘時間
+## find_bus_positino: 輸入起、終點來搜尋兩點附近的公車站，並取得可以搭乘的路線與到達起點公車站剩餘時間
 
 TDX_URL = 'https://tdx.transportdata.tw/auth/realms/TDXConnect/protocol/openid-connect/token'
-
 
 def get_token():
     try:
@@ -77,32 +77,35 @@ def find_bus(start_stop: str, end_stop: str, token: str):
     return message
 
         
-def find_bus_position(start: str, end: str, token :str, client_id = None):
-    if not client_id:
+def find_bus_position(start: str, end: str, token :str, line_client_id = None):
+    ## 當沒有經由line_bot呼叫此funcion時，自動升成一個client_id當作後面暫存檔名使用
+    if not line_client_id:
         import random
-        client_id = random.getrandbits(128)
+        line_client_id = random.getrandbits(128)
+    ## 利用google map搜尋該位置的經緯度
     start_place = find_place(start)
     end_place = find_place(end)
     if not start_place:
         return "起始位置輸入錯誤"
     elif not end_place:
         return "終點位置輸入錯誤"
-
-    start_station = position_get_station(start_place, token, "start", client_id)
-    end_station = position_get_station(end_place, token, "end", client_id)
+    ## 搜尋起終點附近有無公車站
+    start_station = position_get_station(start_place, token, "start", line_client_id)
+    end_station = position_get_station(end_place, token, "end", line_client_id)
     if not start_station:
         return "起始位置附近沒有車站"
     if not end_station:
         return "終點附近沒有車站"
-    with open("./Temp_Stations/start_{}.json".format(client_id), "r") as file:
-        maxNum_of_start_station_in_Temp = len(json.load(file))
-    with open("./Temp_Stations/end_{}.json".format(client_id), "r") as file:
-        maxNum_of_end_station_in_Temp = len(json.load(file))  
-    for start_station_in_Temp in range(maxNum_of_start_station_in_Temp):
-        for end_station_in_Temp in range(maxNum_of_end_station_in_Temp):
-            start_station = readTempfile("start_{}.json".format(client_id), start_station_in_Temp)
-            end_station = readTempfile("end_{}.json".format(client_id), end_station_in_Temp)
-        ### 3.從[start_station[Stops]]中找出所有可以抵達[end_station]的[RouteID, direction]
+
+    with open("./Temp_Stations/start_{}.json".format(line_client_id), "r") as file:
+        maxNum_of_start_stations_in_Temp = len(json.load(file))
+    with open("./Temp_Stations/end_{}.json".format(line_client_id), "r") as file:
+        maxNum_of_end_stations_in_Temp = len(json.load(file))
+    for start_station_in_Temp in range(maxNum_of_start_stations_in_Temp):
+        for end_station_in_Temp in range(maxNum_of_end_stations_in_Temp):
+            start_station = readTempfile("start_{}.json".format(line_client_id), start_station_in_Temp)
+            end_station = readTempfile("end_{}.json".format(line_client_id), end_station_in_Temp)
+        ### 從[start_station[Stops]]中找出所有可以抵達[end_station]的[RouteID, direction]，並加入reachable
             start_routes = []
             end_routes = []
             for route in start_station.get("Stops"):
@@ -116,7 +119,7 @@ def find_bus_position(start: str, end: str, token :str, client_id = None):
             if len(reachable) < 1 :
                 continue
 
-        ### 4.用[StartStopID]找到所有將要到達的公車，並取出[reachable]的到達時間
+        ### 從[Start_StationID]找到所有將要到達的公車，並取出[reachable]的到達時間
             comming = reach_StartStop_time(reachable, start_station.get("StationID"), token)
             if len(comming) < 1:
                 continue
@@ -124,12 +127,12 @@ def find_bus_position(start: str, end: str, token :str, client_id = None):
             for route in comming:
                 message+= "{} 將在 {}後抵達 \n".format(route, transSec(comming.get(route)))
             ##  清除本次存取temp_station資料    
-            open("./Temp_Stations/start_{}.json".format(client_id), "w").close()
-            open("./Temp_Stations/end_{}.json".format(client_id), "w").close()
+            open("./Temp_Stations/start_{}.json".format(line_client_id), "w").close()
+            open("./Temp_Stations/end_{}.json".format(line_client_id), "w").close()
             return message
     ## 清除本次存取temp_station資料
-    open("./Temp_Stations/start_{}.json".format(client_id), "w").close()
-    open("./Temp_Stations/end_{}.json".format(client_id), "w").close()
+    open("./Temp_Stations/start_{}.json".format(line_client_id), "w").close()
+    open("./Temp_Stations/end_{}.json".format(line_client_id), "w").close()
     return "找不到 {} 到 {} 的公車".format(start, end)
 
     
@@ -152,8 +155,9 @@ def isReachable(route: str, start_stop: str, end_stop: str, token) -> int:
                 return direction
     return -1
 
-def reach_StartStop_time(routes, StartID, token):
-    CommingBus_URL = "https://tdx.transportdata.tw/api/advanced/v2/Bus/EstimatedTimeOfArrival/City/Taipei/PassThrough/Station/" + StartID
+### 取得[routes]到達某Station剩餘時間  
+def reach_StartStop_time(routes, StationID, token):
+    CommingBus_URL = "https://tdx.transportdata.tw/api/advanced/v2/Bus/EstimatedTimeOfArrival/City/Taipei/PassThrough/Station/" + StationID
     header = {"authorization" : "Bearer " + token}
     payload = {"format" : "JSON"}
     CommingBus_response = requests.get(CommingBus_URL, headers= header, params= payload)
@@ -173,7 +177,7 @@ def reach_StartStop_time(routes, StartID, token):
         comming = { stop : arrivetime for stop, arrivetime in sorted(comming.items(), key=lambda item: item[1])}
     return comming
 
-## 利用經緯度找到最近的station
+## 利用經緯度找到最近的5個station
 def position_get_station(place, token, start_or_end, client_id):
     condition = True
     ratio = 100
@@ -189,7 +193,7 @@ def position_get_station(place, token, start_or_end, client_id):
                 StationName0 = StationData[0].get("StationName").get("Zh_tw")
                 Stops0 = StationData[0].get("Stops")
                 StationID0 = StationData[0].get("StationID")
-                WriteIn = []
+                WriteIn = []    ##  要寫入temp_stations的資料
                 for i in range(len(StationData)):
                     WriteIn.append({"StationName" : StationData[i].get("StationName").get("Zh_tw"), "Stops" : StationData[i].get("Stops"), "StationID" : StationData[i].get("StationID")})
                 with open("./Temp_Stations/{}_{}.json".format(start_or_end, client_id), "w", encoding="utf-8") as file:
@@ -200,7 +204,7 @@ def position_get_station(place, token, start_or_end, client_id):
         
     return None
 
-## 找到[路線route]從[start_station]到[end_staiton]的Direction
+## 找到[路線route]從[start_station]到[end_staiton]的Direction，若無法到達則回傳-1
 def Direction_Of_StartToEnd(route, start_station_Name, end_station_Name, token):
     Route_URL = "https://tdx.transportdata.tw/api/basic/v2/Bus/DisplayStopOfRoute/City/Taipei/" + route
     header = {"authorization" : "Bearer " + token}
@@ -220,14 +224,16 @@ def readTempfile(filename, order_of_station):
     with open("./Temp_Stations/"+filename, "r") as file:
         station = json.load(file)[order_of_station]
     return {"StationName" : station.get("StationName"), "Stops" : station.get("Stops"), "StationID" : station.get("StationID")}
-def testTokenAvailable(token):
-    pass
+
+
 
 def transSec(sec):
     minute = math.floor(sec/60)
     sec = sec%60
     return "{} 分 {}秒".format(minute, sec)
 
+def testTokenAvailable(token):
+    pass
 
 def main():
     tdx_token = get_token()

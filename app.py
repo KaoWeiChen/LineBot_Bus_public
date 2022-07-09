@@ -22,7 +22,7 @@ try:
         CHANNEL_ACCESS_TOKEN = json.load(file).get("CHANNEL_ACCESS_TOKEN")
         CHANNEL_SECRET = json.load(file).get("CHANNEL_SECRET")
 except FileNotFoundError:
-    logging.warning("請先執行[第一次使用.exe]並輸入LINE_CHANNEL資料")
+    logging.warning("請先執行[第一次使用.exe]並輸入LINE CHANNEL資料")
     os._exit(0)
 
 
@@ -60,6 +60,7 @@ def handle_message(event):
     # 取得tdx_token失敗
     if tdx_token == None:
         line_bot_api.reply_message(event.reply_token,"取得tdx token 失敗")
+        
     text = event.message.text
     message = TextSendMessage(MyCommand.cmd(text, tdx_token, client_id))
     line_bot_api.reply_message(event.reply_token,message)

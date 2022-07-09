@@ -24,8 +24,8 @@
   
 > 2. 根據需求輸入指令
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(1) 公車站 [出發公車站名]到[到達公車站名]
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(1) 公車站 [出發公車站名]到[到達公車站名] : 輸入起、終點公車站名來找到可以搭乘的路線，並取得該路線到達起點公車站剩餘時間
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(2) 地點 [出發地點]到[到達地點]
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(2) 地點 [出發地點]到[到達地點] : 輸入起、終點來搜尋兩點附近的公車站，並取得可以搭乘的路線與到達起點公車站剩餘時間
 
  ![image](https://github.com/Osalamia/LineBot_Bus_public/blob/main_public/%E7%AF%84%E4%BE%8B.jpg)
